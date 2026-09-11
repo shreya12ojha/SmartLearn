@@ -33,3 +33,19 @@ def submit_quiz(payload: QuizSubmitRequest, db: Session = Depends(get_db)):
 
     mastery = score_quiz(db, payload.user_id, payload.answers)
     return QuizSubmitResponse(mastery=mastery)
+
+from app.models import TopicPrerequisite
+from app.schemas import TopicGraphResponse, PrerequisiteOut
+
+
+@router.get("/topics/graph", response_model=TopicGraphResponse)
+def get_topic_graph(db: Session = Depends(get_db)):
+    topics = db.query(Topic).all()
+    prerequisites = db.query(TopicPrerequisite).all()
+
+    topic_list = [{"id": t.id, "name": t.name, "domain": t.domain} for t in topics]
+    prereq_list = [
+        PrerequisiteOut(topic_id=p.topic_id, prerequisite_topic_id=p.prerequisite_topic_id)
+        for p in prerequisites
+    ]
+    return TopicGraphResponse(topics=topic_list, prerequisites=prereq_list)

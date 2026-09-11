@@ -70,3 +70,10 @@ class MasteryScore(Base):
     last_updated = Column(DateTime, default=datetime.utcnow)
 
     user = relationship("User", back_populates="mastery_scores")
+
+class TopicPrerequisite(Base):
+    __tablename__ = "topic_prerequisites"
+
+    id = Column(Integer, primary_key=True, index=True)
+    topic_id = Column(Integer, ForeignKey("topics.id"), nullable=False)
+    prerequisite_topic_id = Column(Integer, ForeignKey("topics.id"), nullable=False)

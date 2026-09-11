@@ -40,3 +40,12 @@ class QuizSubmitRequest(BaseModel):
 
 class QuizSubmitResponse(BaseModel):
     mastery: Dict[int, float]
+
+class PrerequisiteOut(BaseModel):
+    topic_id: int
+    prerequisite_topic_id: int
+
+
+class TopicGraphResponse(BaseModel):
+    topics: List[dict]
+    prerequisites: List[PrerequisiteOut]
