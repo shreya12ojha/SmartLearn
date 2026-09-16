@@ -18,7 +18,9 @@ const initialMastery = {
 
 function App() {
   const [mastery, setMastery] = useState(initialMastery)
-  const [profile, setProfile] = useState(null) // { userType, subject, level, hours }
+  const [profile, setProfile] = useState(null)
+  const [auth, setAuth] = useState(null) // { token, userId }
+  const [realMastery, setRealMastery] = useState({}) // { [realTopicId]: score }, DSA only
 
   return (
     <div>
@@ -31,11 +33,33 @@ function App() {
       </nav>
 
       <Routes>
-        <Route path="/" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
+        <Route path="/" element={<Login setAuth={setAuth} />} />
+        <Route path="/signup" element={<Signup setAuth={setAuth} />} />
         <Route path="/onboarding" element={<Onboarding setProfile={setProfile} />} />
-        <Route path="/quiz" element={<Quiz mastery={mastery} setMastery={setMastery} profile={profile} />} />
-        <Route path="/roadmap" element={<Roadmap mastery={mastery} profile={profile} />} />
+        <Route
+          path="/quiz"
+          element={
+            <Quiz
+              mastery={mastery}
+              setMastery={setMastery}
+              profile={profile}
+              auth={auth}
+              realMastery={realMastery}
+              setRealMastery={setRealMastery}
+            />
+          }
+        />
+        <Route
+          path="/roadmap"
+          element={
+            <Roadmap
+              mastery={mastery}
+              profile={profile}
+              auth={auth}
+              realMastery={realMastery}
+            />
+          }
+        />
       </Routes>
     </div>
   )

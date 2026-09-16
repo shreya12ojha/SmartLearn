@@ -16,11 +16,13 @@ def classify_mastery_level(score: float) -> str:
         return "Advanced"
 
 
-def score_quiz(db: Session, user_id: int, answers: list) -> dict:
+def score_quiz(db: Session, user_id: int, answers: list):
     """
     Takes raw answers, computes a weighted mastery score per topic,
-    logs the attempt, and updates the mastery_scores table.
-    Returns: { topic_id: mastery_score }
+    logs the attempt, updates mastery_scores, and returns both the
+    topic-level mastery AND a per-question correct/incorrect breakdown.
+    Returns: ({ topic_id: mastery_score }, [ {question_id, question_text,
+              selected_option, correct_option, is_correct}, ... ])
     """
     question_ids = [a.question_id for a in answers]
     questions = db.query(QuizQuestion).filter(QuizQuestion.id.in_(question_ids)).all()
@@ -28,6 +30,7 @@ def score_quiz(db: Session, user_id: int, answers: list) -> dict:
 
     topic_correct_weight = defaultdict(float)
     topic_total_weight = defaultdict(float)
+    results = []
 
     for ans in answers:
         question = question_map.get(ans.question_id)
@@ -37,8 +40,17 @@ def score_quiz(db: Session, user_id: int, answers: list) -> dict:
         weight = DIFFICULTY_WEIGHTS.get(question.difficulty, 1)
         topic_total_weight[question.topic_id] += weight
 
-        if ans.selected_option == question.correct_answer:
+        is_correct = ans.selected_option == question.correct_answer
+        if is_correct:
             topic_correct_weight[question.topic_id] += weight
+
+        results.append({
+            "question_id": question.id,
+            "question_text": question.question_text,
+            "selected_option": ans.selected_option,
+            "correct_option": question.correct_answer,
+            "is_correct": is_correct,
+        })
 
     mastery_result = {}
 
@@ -47,7 +59,6 @@ def score_quiz(db: Session, user_id: int, answers: list) -> dict:
         score = round(correct_weight / total_weight, 3) if total_weight > 0 else 0.0
         mastery_result[topic_id] = score
 
-        # Log the raw attempt
         db.add(QuizAttempt(
             user_id=user_id,
             topic_id=topic_id,
@@ -55,7 +66,6 @@ def score_quiz(db: Session, user_id: int, answers: list) -> dict:
             score=score,
         ))
 
-        # Update existing mastery row, or create a new one
         mastery_row = db.query(MasteryScore).filter(
             MasteryScore.user_id == user_id,
             MasteryScore.topic_id == topic_id
@@ -76,4 +86,4 @@ def score_quiz(db: Session, user_id: int, answers: list) -> dict:
             ))
 
     db.commit()
-    return mastery_result
+    return mastery_result, results

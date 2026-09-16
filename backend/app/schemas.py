@@ -41,6 +41,19 @@ class QuizSubmitRequest(BaseModel):
 class QuizSubmitResponse(BaseModel):
     mastery: Dict[int, float]
 
+
+class QuestionResultOut(BaseModel):
+    question_id: int
+    question_text: str
+    selected_option: str
+    correct_option: str
+    is_correct: bool
+
+
+class QuizSubmitResponse(BaseModel):
+    mastery: Dict[int, float]
+    results: List[QuestionResultOut]
+
 class PrerequisiteOut(BaseModel):
     topic_id: int
     prerequisite_topic_id: int

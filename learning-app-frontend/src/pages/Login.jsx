@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { login } from '../api/mockApi'
+import { login } from '../api/realApi'
 
-function Login() {
+function Login({ setAuth }) {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -26,7 +26,8 @@ function Login() {
     setError('')
     setLoading(true)
     try {
-      await login({ email, password })
+      const result = await login({ email, password })
+      setAuth({ token: result.token, userId: result.user_id })
       navigate('/roadmap')
     } catch (err) {
       setError('Invalid email or password.')

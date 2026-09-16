@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { fetchRoadmap, fetchPacingEstimate, checkpointRetest } from '../api/mockApi'
+import { fetchTopicGraph } from '../api/realApi'
 
 function getTier(mastery) {
   if (mastery === 0) return 'locked'
@@ -16,7 +17,7 @@ function getIcon(tier) {
   return '🔒'
 }
 
-function Roadmap({ mastery, profile }) {
+function Roadmap({ mastery, profile, realMastery }) {
   const [topics, setTopics] = useState([])
   const [pacing, setPacing] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -25,10 +26,36 @@ function Roadmap({ mastery, profile }) {
   const [retestingId, setRetestingId] = useState(null)
   const navigate = useNavigate()
 
+  const isDsa = profile?.subject === 'dsa'
+
   useEffect(() => {
     setLoading(true)
     setAnimated(false)
 
+    if (isDsa) {
+      // Real branch: build topic cards from the topic graph + realMastery,
+      // only showing topics the user has actually attempted (has a real score for).
+      fetchTopicGraph().then((data) => {
+        const dsaTopics = data.topics.filter((t) => (t.domain || '').toLowerCase() === 'dsa')
+        const attempted = dsaTopics
+          .filter((t) => realMastery[t.id] !== undefined)
+          .map((t) => ({
+            id: t.id,
+            name: t.name,
+            mastery: realMastery[t.id],
+            // TODO: replace with Member 3's real resource once
+            // GET /api/resources?topic_id= is wired in.
+            resource: 'Resource recommendations coming soon for this topic.',
+          }))
+        setTopics(attempted)
+        setPacing(null) // real pacing needs Member 2's Path Planning Agent; not wired yet
+        setLoading(false)
+        setTimeout(() => setAnimated(true), 100)
+      })
+      return
+    }
+
+    // Mock branch: unchanged.
     const roadmapPromise = fetchRoadmap(mastery)
     const pacingPromise = profile
       ? fetchPacingEstimate(profile.subject, mastery, profile.hours)
@@ -40,14 +67,20 @@ function Roadmap({ mastery, profile }) {
       setLoading(false)
       setTimeout(() => setAnimated(true), 100)
     })
-  }, [mastery, profile])
+  }, [mastery, profile, realMastery, isDsa])
 
   const toggleExpand = (id) => {
     setExpandedId(expandedId === id ? null : id)
   }
 
   const handleRetest = async (e, topicId) => {
-    e.stopPropagation() // don't let this also trigger toggleExpand on the card
+    e.stopPropagation()
+    if (isDsa) {
+      // Real DSA retest: no mock checkpoint call needed — just jump straight
+      // into RealDsaQuiz at this topic.
+      navigate('/quiz', { state: { startAt: { subject: 'dsa', topicId } } })
+      return
+    }
     setRetestingId(topicId)
     const checkpoint = await checkpointRetest(topicId)
     setRetestingId(null)
@@ -59,7 +92,7 @@ function Roadmap({ mastery, profile }) {
   if (loading) {
     return (
       <div className="roadmap-container">
-        <h1 className="roadmap-title">Your DSA Roadmap</h1>
+        <h1 className="roadmap-title">Your {isDsa ? 'DSA' : ''} Roadmap</h1>
         <p className="roadmap-hint">Loading your progress...</p>
       </div>
     )
@@ -68,6 +101,10 @@ function Roadmap({ mastery, profile }) {
   return (
     <div className="roadmap-container">
       <h1 className="roadmap-title">Your Roadmap</h1>
+
+      {isDsa && topics.length === 0 && (
+        <p className="roadmap-hint">Take the DSA quiz to see your progress here.</p>
+      )}
 
       {pacing && (
         <div className="pacing-card">

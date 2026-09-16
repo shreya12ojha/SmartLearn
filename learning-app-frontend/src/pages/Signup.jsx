@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { signup } from '../api/mockApi'
+import { signup } from '../api/realApi'
 
-function Signup() {
+function Signup({ setAuth }) {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -28,7 +28,8 @@ function Signup() {
     setError('')
     setLoading(true)
     try {
-      await signup({ name, email, password })
+      const result = await signup({ name, email, password })
+      setAuth({ token: result.token, userId: result.user_id })
       navigate('/onboarding')
     } catch (err) {
       setError('Something went wrong. Please try again.')
