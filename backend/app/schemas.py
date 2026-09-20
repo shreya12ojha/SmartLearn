@@ -62,3 +62,15 @@ class PrerequisiteOut(BaseModel):
 class TopicGraphResponse(BaseModel):
     topics: List[dict]
     prerequisites: List[PrerequisiteOut]
+
+class MasteryDetail(BaseModel):
+    topic_id: int
+    topic_name: str
+    mastery_score: float
+    mastery_level: str
+    last_updated: str
+
+
+class MasteryOverviewResponse(BaseModel):
+    user_id: int
+    mastery: List[MasteryDetail]
