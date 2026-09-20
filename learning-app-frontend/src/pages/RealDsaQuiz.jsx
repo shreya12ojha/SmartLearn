@@ -123,7 +123,8 @@ function RealDsaQuiz({ mastery = {}, setMastery, auth }) {
         question_id: q.id,
         selected_option: answers[q.id],
       }))
-      const response = await submitQuizReal(auth.userId, answersArray)
+      const quizType = isRetestMode ? 'checkpoint' : 'diagnostic'
+      const response = await submitQuizReal(auth.userId, answersArray, quizType)
       const score = response.mastery[String(currentTopic.id)] ?? response.mastery[currentTopic.id] ?? 0
 
       setMastery({ ...mastery, [currentTopic.id]: Math.max(mastery[currentTopic.id] || 0, score) })
