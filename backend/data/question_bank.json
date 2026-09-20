@@ -1,0 +1,732 @@
+{
+  "topics": [
+    { "name": "Loops", "domain": "DSA", "difficulty_level": "Beginner" },
+    { "name": "Arrays", "domain": "DSA", "difficulty_level": "Beginner" },
+    { "name": "Strings", "domain": "DSA", "difficulty_level": "Beginner" },
+    {
+      "name": "Recursion",
+      "domain": "DSA",
+      "difficulty_level": "Intermediate"
+    },
+    {
+      "name": "Linked Lists",
+      "domain": "DSA",
+      "difficulty_level": "Intermediate"
+    },
+    { "name": "Stacks", "domain": "DSA", "difficulty_level": "Intermediate" },
+    { "name": "Queues", "domain": "DSA", "difficulty_level": "Intermediate" },
+    { "name": "Sorting", "domain": "DSA", "difficulty_level": "Intermediate" },
+    { "name": "Searching", "domain": "DSA", "difficulty_level": "Beginner" },
+    { "name": "Trees", "domain": "DSA", "difficulty_level": "Advanced" },
+    { "name": "Hashing", "domain": "DSA", "difficulty_level": "Advanced" }
+  ],
+
+  "prerequisites": [
+    { "topic": "Strings", "prerequisite": "Loops" },
+    { "topic": "Recursion", "prerequisite": "Loops" },
+    { "topic": "Linked Lists", "prerequisite": "Arrays" },
+    { "topic": "Stacks", "prerequisite": "Arrays" },
+    { "topic": "Queues", "prerequisite": "Arrays" },
+    { "topic": "Sorting", "prerequisite": "Arrays" },
+    { "topic": "Sorting", "prerequisite": "Loops" },
+    { "topic": "Searching", "prerequisite": "Arrays" },
+    { "topic": "Trees", "prerequisite": "Recursion" },
+    { "topic": "Trees", "prerequisite": "Linked Lists" },
+    { "topic": "Hashing", "prerequisite": "Arrays" }
+  ],
+
+  "questions": [
+    {
+      "topic": "Loops",
+      "question_text": "What will `for i in range(3): print(i)` output?",
+      "options": { "A": "0 1 2", "B": "1 2 3", "C": "0 1 2 3", "D": "Error" },
+      "correct_answer": "A",
+      "difficulty": "easy"
+    },
+    {
+      "topic": "Loops",
+      "question_text": "What does the `break` statement do inside a loop?",
+      "options": {
+        "A": "Skips current iteration",
+        "B": "Exits the loop entirely",
+        "C": "Restarts the loop",
+        "D": "Pauses execution"
+      },
+      "correct_answer": "B",
+      "difficulty": "easy"
+    },
+    {
+      "topic": "Loops",
+      "question_text": "Which loop is guaranteed to execute its body at least once?",
+      "options": {
+        "A": "for",
+        "B": "while",
+        "C": "do-while",
+        "D": "None of these"
+      },
+      "correct_answer": "C",
+      "difficulty": "medium"
+    },
+    {
+      "topic": "Loops",
+      "question_text": "What is the time complexity of a single loop that runs from 1 to n?",
+      "options": { "A": "O(1)", "B": "O(log n)", "C": "O(n)", "D": "O(n^2)" },
+      "correct_answer": "C",
+      "difficulty": "medium"
+    },
+    {
+      "topic": "Loops",
+      "question_text": "What is the time complexity of two nested loops, each running n times?",
+      "options": {
+        "A": "O(n)",
+        "B": "O(n log n)",
+        "C": "O(n^2)",
+        "D": "O(2n)"
+      },
+      "correct_answer": "C",
+      "difficulty": "hard"
+    },
+    {
+      "topic": "Loops",
+      "question_text": "In `for i in range(0, 10, 2)`, how many times does the loop execute?",
+      "options": { "A": "10", "B": "5", "C": "2", "D": "4" },
+      "correct_answer": "B",
+      "difficulty": "hard"
+    },
+
+    {
+      "topic": "Arrays",
+      "question_text": "What is the time complexity of accessing an element by index in an array?",
+      "options": { "A": "O(1)", "B": "O(n)", "C": "O(log n)", "D": "O(n^2)" },
+      "correct_answer": "A",
+      "difficulty": "easy"
+    },
+    {
+      "topic": "Arrays",
+      "question_text": "What is the index of the first element in a typical zero-indexed array?",
+      "options": { "A": "1", "B": "-1", "C": "0", "D": "Depends on language" },
+      "correct_answer": "C",
+      "difficulty": "easy"
+    },
+    {
+      "topic": "Arrays",
+      "question_text": "What is the time complexity of inserting an element at the beginning of an array?",
+      "options": { "A": "O(1)", "B": "O(n)", "C": "O(log n)", "D": "O(n^2)" },
+      "correct_answer": "B",
+      "difficulty": "medium"
+    },
+    {
+      "topic": "Arrays",
+      "question_text": "Which operation is generally most expensive on a plain (non-dynamic) array?",
+      "options": {
+        "A": "Read by index",
+        "B": "Update by index",
+        "C": "Insert/Delete in the middle",
+        "D": "Iterate through all elements"
+      },
+      "correct_answer": "C",
+      "difficulty": "medium"
+    },
+    {
+      "topic": "Arrays",
+      "question_text": "What is the space complexity of a 2D array of size n x n?",
+      "options": { "A": "O(n)", "B": "O(n^2)", "C": "O(log n)", "D": "O(1)" },
+      "correct_answer": "B",
+      "difficulty": "hard"
+    },
+    {
+      "topic": "Arrays",
+      "question_text": "In a dynamic array (like Python list) that doubles capacity when full, what is the amortized time complexity of an append operation?",
+      "options": { "A": "O(n)", "B": "O(log n)", "C": "O(1)", "D": "O(n^2)" },
+      "correct_answer": "C",
+      "difficulty": "hard"
+    },
+
+    {
+      "topic": "Strings",
+      "question_text": "In most languages, are strings mutable or immutable by default (e.g., in Python/Java)?",
+      "options": {
+        "A": "Always mutable",
+        "B": "Always immutable",
+        "C": "Immutable in Python and Java",
+        "D": "Depends only on string length"
+      },
+      "correct_answer": "C",
+      "difficulty": "easy"
+    },
+    {
+      "topic": "Strings",
+      "question_text": "What does string concatenation using `+` typically do in terms of memory?",
+      "options": {
+        "A": "Modifies the original string in place",
+        "B": "Creates a new string object",
+        "C": "Deletes the original string",
+        "D": "Has no memory cost"
+      },
+      "correct_answer": "B",
+      "difficulty": "easy"
+    },
+    {
+      "topic": "Strings",
+      "question_text": "What is the time complexity of checking if two strings of length n are equal?",
+      "options": { "A": "O(1)", "B": "O(log n)", "C": "O(n)", "D": "O(n^2)" },
+      "correct_answer": "C",
+      "difficulty": "medium"
+    },
+    {
+      "topic": "Strings",
+      "question_text": "Which approach is most efficient for checking if a string is a palindrome?",
+      "options": {
+        "A": "Reverse and compare, O(n)",
+        "B": "Sort the string, O(n log n)",
+        "C": "Check all substrings, O(n^2)",
+        "D": "Convert to integer first"
+      },
+      "correct_answer": "A",
+      "difficulty": "medium"
+    },
+    {
+      "topic": "Strings",
+      "question_text": "What is the time complexity of the naive substring search algorithm in the worst case (text length n, pattern length m)?",
+      "options": {
+        "A": "O(n)",
+        "B": "O(n + m)",
+        "C": "O(n * m)",
+        "D": "O(log n)"
+      },
+      "correct_answer": "C",
+      "difficulty": "hard"
+    },
+    {
+      "topic": "Strings",
+      "question_text": "Which data structure/algorithm improves substring search to O(n + m)?",
+      "options": {
+        "A": "Bubble sort",
+        "B": "KMP (Knuth-Morris-Pratt) algorithm",
+        "C": "Binary search",
+        "D": "Linked list traversal"
+      },
+      "correct_answer": "B",
+      "difficulty": "hard"
+    },
+
+    {
+      "topic": "Recursion",
+      "question_text": "What is a 'base case' in a recursive function?",
+      "options": {
+        "A": "The first call to the function",
+        "B": "The condition that stops further recursive calls",
+        "C": "The slowest part of the function",
+        "D": "A syntax error"
+      },
+      "correct_answer": "B",
+      "difficulty": "easy"
+    },
+    {
+      "topic": "Recursion",
+      "question_text": "What happens when a recursive function is called with no base case reached?",
+      "options": {
+        "A": "It runs once and stops",
+        "B": "Stack overflow / infinite recursion",
+        "C": "It automatically optimizes itself",
+        "D": "Nothing, it just returns None"
+      },
+      "correct_answer": "B",
+      "difficulty": "easy"
+    },
+    {
+      "topic": "Recursion",
+      "question_text": "What is the base case typically used in a recursive factorial function?",
+      "options": {
+        "A": "n == 0 or n == 1",
+        "B": "n < 0",
+        "C": "n == 100",
+        "D": "There is no base case needed"
+      },
+      "correct_answer": "A",
+      "difficulty": "medium"
+    },
+    {
+      "topic": "Recursion",
+      "question_text": "What data structure is used internally by the system to manage recursive calls?",
+      "options": {
+        "A": "Queue",
+        "B": "Heap",
+        "C": "Call Stack",
+        "D": "Hash Table"
+      },
+      "correct_answer": "C",
+      "difficulty": "medium"
+    },
+    {
+      "topic": "Recursion",
+      "question_text": "What is the time complexity of a naive recursive Fibonacci function (without memoization)?",
+      "options": {
+        "A": "O(n)",
+        "B": "O(n log n)",
+        "C": "O(2^n)",
+        "D": "O(n^2)"
+      },
+      "correct_answer": "C",
+      "difficulty": "hard"
+    },
+    {
+      "topic": "Recursion",
+      "question_text": "What technique converts a naive exponential recursive solution into a polynomial-time one by storing previously computed results?",
+      "options": {
+        "A": "Tail recursion",
+        "B": "Memoization",
+        "C": "Backtracking",
+        "D": "Iteration only"
+      },
+      "correct_answer": "B",
+      "difficulty": "hard"
+    },
+
+    {
+      "topic": "Linked Lists",
+      "question_text": "What is the main advantage of a linked list over an array for insertions?",
+      "options": {
+        "A": "Faster random access",
+        "B": "No need to shift elements for insertion/deletion",
+        "C": "Uses less memory always",
+        "D": "Better cache performance"
+      },
+      "correct_answer": "B",
+      "difficulty": "easy"
+    },
+    {
+      "topic": "Linked Lists",
+      "question_text": "What does the 'head' of a linked list refer to?",
+      "options": {
+        "A": "The last node",
+        "B": "The first node",
+        "C": "The middle node",
+        "D": "A pointer to null"
+      },
+      "correct_answer": "B",
+      "difficulty": "easy"
+    },
+    {
+      "topic": "Linked Lists",
+      "question_text": "What is the time complexity of accessing the k-th element in a singly linked list?",
+      "options": { "A": "O(1)", "B": "O(log n)", "C": "O(n)", "D": "O(n^2)" },
+      "correct_answer": "C",
+      "difficulty": "medium"
+    },
+    {
+      "topic": "Linked Lists",
+      "question_text": "In a doubly linked list, each node typically stores pointers to:",
+      "options": {
+        "A": "Only the next node",
+        "B": "Only the previous node",
+        "C": "Both next and previous nodes",
+        "D": "All nodes in the list"
+      },
+      "correct_answer": "C",
+      "difficulty": "medium"
+    },
+    {
+      "topic": "Linked Lists",
+      "question_text": "Which technique is commonly used to detect a cycle in a linked list in O(n) time and O(1) space?",
+      "options": {
+        "A": "Hashing every node",
+        "B": "Floyd's Cycle Detection (slow/fast pointer)",
+        "C": "Sorting the list",
+        "D": "Binary search"
+      },
+      "correct_answer": "B",
+      "difficulty": "hard"
+    },
+    {
+      "topic": "Linked Lists",
+      "question_text": "What is the time complexity of reversing a singly linked list iteratively?",
+      "options": { "A": "O(1)", "B": "O(log n)", "C": "O(n)", "D": "O(n^2)" },
+      "correct_answer": "C",
+      "difficulty": "hard"
+    },
+
+    {
+      "topic": "Stacks",
+      "question_text": "A stack follows which order principle?",
+      "options": {
+        "A": "FIFO (First In First Out)",
+        "B": "LIFO (Last In First Out)",
+        "C": "Random access",
+        "D": "Priority based"
+      },
+      "correct_answer": "B",
+      "difficulty": "easy"
+    },
+    {
+      "topic": "Stacks",
+      "question_text": "Which operation adds an element to the top of a stack?",
+      "options": { "A": "Enqueue", "B": "Dequeue", "C": "Push", "D": "Pop" },
+      "correct_answer": "C",
+      "difficulty": "easy"
+    },
+    {
+      "topic": "Stacks",
+      "question_text": "What is the time complexity of push and pop operations on a stack implemented with an array?",
+      "options": { "A": "O(n)", "B": "O(log n)", "C": "O(1)", "D": "O(n^2)" },
+      "correct_answer": "C",
+      "difficulty": "medium"
+    },
+    {
+      "topic": "Stacks",
+      "question_text": "Which classic problem is commonly solved using a stack?",
+      "options": {
+        "A": "Finding shortest path",
+        "B": "Balanced parentheses checking",
+        "C": "Sorting an array",
+        "D": "Finding the median"
+      },
+      "correct_answer": "B",
+      "difficulty": "medium"
+    },
+    {
+      "topic": "Stacks",
+      "question_text": "How can a stack be used to evaluate a postfix expression?",
+      "options": {
+        "A": "Push operators only, ignore operands",
+        "B": "Push operands, pop and compute when an operator is found",
+        "C": "Stacks cannot evaluate postfix expressions",
+        "D": "Convert to infix first, then evaluate"
+      },
+      "correct_answer": "B",
+      "difficulty": "hard"
+    },
+    {
+      "topic": "Stacks",
+      "question_text": "What is the space complexity of using recursion to reverse a stack (without extra data structures)?",
+      "options": { "A": "O(1)", "B": "O(log n)", "C": "O(n)", "D": "O(n^2)" },
+      "correct_answer": "C",
+      "difficulty": "hard"
+    },
+
+    {
+      "topic": "Queues",
+      "question_text": "A queue follows which order principle?",
+      "options": {
+        "A": "LIFO",
+        "B": "FIFO (First In First Out)",
+        "C": "Random access",
+        "D": "Priority only"
+      },
+      "correct_answer": "B",
+      "difficulty": "easy"
+    },
+    {
+      "topic": "Queues",
+      "question_text": "Which operation removes an element from the front of a queue?",
+      "options": { "A": "Push", "B": "Pop", "C": "Enqueue", "D": "Dequeue" },
+      "correct_answer": "D",
+      "difficulty": "easy"
+    },
+    {
+      "topic": "Queues",
+      "question_text": "What is the time complexity of enqueue and dequeue operations in a properly implemented circular queue?",
+      "options": { "A": "O(n)", "B": "O(1)", "C": "O(log n)", "D": "O(n^2)" },
+      "correct_answer": "B",
+      "difficulty": "medium"
+    },
+    {
+      "topic": "Queues",
+      "question_text": "What is a key difference between a queue and a deque (double-ended queue)?",
+      "options": {
+        "A": "A deque allows insertion/removal from both ends",
+        "B": "A deque can only be used for numbers",
+        "C": "A queue is always faster",
+        "D": "There is no difference"
+      },
+      "correct_answer": "A",
+      "difficulty": "medium"
+    },
+    {
+      "topic": "Queues",
+      "question_text": "Which traversal algorithm typically uses a queue as its core data structure?",
+      "options": {
+        "A": "Depth-First Search (DFS)",
+        "B": "Breadth-First Search (BFS)",
+        "C": "Binary Search",
+        "D": "Quick Sort"
+      },
+      "correct_answer": "B",
+      "difficulty": "hard"
+    },
+    {
+      "topic": "Queues",
+      "question_text": "How can two stacks be used to implement a queue?",
+      "options": {
+        "A": "It is not possible",
+        "B": "Use one stack for enqueue and transfer elements to a second stack for dequeue",
+        "C": "Use only push operations on both stacks",
+        "D": "Convert stacks into arrays first"
+      },
+      "correct_answer": "B",
+      "difficulty": "hard"
+    },
+
+    {
+      "topic": "Sorting",
+      "question_text": "What is the average time complexity of Bubble Sort?",
+      "options": {
+        "A": "O(n)",
+        "B": "O(n log n)",
+        "C": "O(n^2)",
+        "D": "O(log n)"
+      },
+      "correct_answer": "C",
+      "difficulty": "easy"
+    },
+    {
+      "topic": "Sorting",
+      "question_text": "Which sorting algorithm repeatedly selects the minimum element and places it at the beginning?",
+      "options": {
+        "A": "Merge Sort",
+        "B": "Selection Sort",
+        "C": "Quick Sort",
+        "D": "Radix Sort"
+      },
+      "correct_answer": "B",
+      "difficulty": "easy"
+    },
+    {
+      "topic": "Sorting",
+      "question_text": "What is the average-case time complexity of Merge Sort?",
+      "options": {
+        "A": "O(n)",
+        "B": "O(n^2)",
+        "C": "O(n log n)",
+        "D": "O(log n)"
+      },
+      "correct_answer": "C",
+      "difficulty": "medium"
+    },
+    {
+      "topic": "Sorting",
+      "question_text": "Which sorting algorithm is generally NOT stable by default?",
+      "options": {
+        "A": "Merge Sort",
+        "B": "Bubble Sort",
+        "C": "Quick Sort",
+        "D": "Insertion Sort"
+      },
+      "correct_answer": "C",
+      "difficulty": "medium"
+    },
+    {
+      "topic": "Sorting",
+      "question_text": "What is the worst-case time complexity of Quick Sort?",
+      "options": {
+        "A": "O(n log n)",
+        "B": "O(n)",
+        "C": "O(n^2)",
+        "D": "O(log n)"
+      },
+      "correct_answer": "C",
+      "difficulty": "hard"
+    },
+    {
+      "topic": "Sorting",
+      "question_text": "Which sorting algorithm has O(n + k) time complexity, where k is the range of input values, and does not use comparisons?",
+      "options": {
+        "A": "Merge Sort",
+        "B": "Quick Sort",
+        "C": "Counting Sort",
+        "D": "Bubble Sort"
+      },
+      "correct_answer": "C",
+      "difficulty": "hard"
+    },
+
+    {
+      "topic": "Searching",
+      "question_text": "What is the time complexity of linear search on an unsorted array of n elements?",
+      "options": { "A": "O(1)", "B": "O(log n)", "C": "O(n)", "D": "O(n^2)" },
+      "correct_answer": "C",
+      "difficulty": "easy"
+    },
+    {
+      "topic": "Searching",
+      "question_text": "Binary search requires the input array to be:",
+      "options": {
+        "A": "Unsorted",
+        "B": "Sorted",
+        "C": "Circular",
+        "D": "Of even length"
+      },
+      "correct_answer": "B",
+      "difficulty": "easy"
+    },
+    {
+      "topic": "Searching",
+      "question_text": "What is the time complexity of binary search on a sorted array of n elements?",
+      "options": {
+        "A": "O(n)",
+        "B": "O(log n)",
+        "C": "O(n log n)",
+        "D": "O(1)"
+      },
+      "correct_answer": "B",
+      "difficulty": "medium"
+    },
+    {
+      "topic": "Searching",
+      "question_text": "In binary search, what happens after comparing the target with the middle element and finding the target is smaller?",
+      "options": {
+        "A": "Search the right half",
+        "B": "Search the left half",
+        "C": "Search the entire array again",
+        "D": "Stop the search"
+      },
+      "correct_answer": "B",
+      "difficulty": "medium"
+    },
+    {
+      "topic": "Searching",
+      "question_text": "What is the time complexity of searching in a balanced Binary Search Tree with n nodes?",
+      "options": { "A": "O(n)", "B": "O(log n)", "C": "O(1)", "D": "O(n^2)" },
+      "correct_answer": "B",
+      "difficulty": "hard"
+    },
+    {
+      "topic": "Searching",
+      "question_text": "Which search technique is most efficient for a uniformly distributed sorted array, achieving better than O(log n) on average?",
+      "options": {
+        "A": "Linear Search",
+        "B": "Jump Search",
+        "C": "Interpolation Search",
+        "D": "Bubble Search"
+      },
+      "correct_answer": "C",
+      "difficulty": "hard"
+    },
+
+    {
+      "topic": "Trees",
+      "question_text": "What is the maximum number of children a node can have in a binary tree?",
+      "options": { "A": "1", "B": "2", "C": "3", "D": "Unlimited" },
+      "correct_answer": "B",
+      "difficulty": "easy"
+    },
+    {
+      "topic": "Trees",
+      "question_text": "What is the term for a tree node with no children?",
+      "options": { "A": "Root", "B": "Parent", "C": "Leaf", "D": "Sibling" },
+      "correct_answer": "C",
+      "difficulty": "easy"
+    },
+    {
+      "topic": "Trees",
+      "question_text": "In a Binary Search Tree, where are values smaller than the root node placed?",
+      "options": {
+        "A": "Right subtree",
+        "B": "Left subtree",
+        "C": "Anywhere",
+        "D": "BSTs don't allow smaller values"
+      },
+      "correct_answer": "B",
+      "difficulty": "medium"
+    },
+    {
+      "topic": "Trees",
+      "question_text": "Which traversal visits nodes in the order: Left, Root, Right?",
+      "options": {
+        "A": "Preorder",
+        "B": "Postorder",
+        "C": "Inorder",
+        "D": "Level-order"
+      },
+      "correct_answer": "C",
+      "difficulty": "medium"
+    },
+    {
+      "topic": "Trees",
+      "question_text": "What is the time complexity of search, insert, and delete operations in a balanced Binary Search Tree?",
+      "options": { "A": "O(1)", "B": "O(n)", "C": "O(log n)", "D": "O(n^2)" },
+      "correct_answer": "C",
+      "difficulty": "hard"
+    },
+    {
+      "topic": "Trees",
+      "question_text": "What is the worst-case time complexity of search in an unbalanced Binary Search Tree (degenerate into a linked list)?",
+      "options": {
+        "A": "O(log n)",
+        "B": "O(1)",
+        "C": "O(n)",
+        "D": "O(n log n)"
+      },
+      "correct_answer": "C",
+      "difficulty": "hard"
+    },
+
+    {
+      "topic": "Hashing",
+      "question_text": "What is the primary purpose of a hash function in a hash table?",
+      "options": {
+        "A": "To sort data",
+        "B": "To map keys to array indices",
+        "C": "To compress data",
+        "D": "To encrypt data"
+      },
+      "correct_answer": "B",
+      "difficulty": "easy"
+    },
+    {
+      "topic": "Hashing",
+      "question_text": "What is the average time complexity of insertion and lookup in a well-implemented hash table?",
+      "options": { "A": "O(n)", "B": "O(log n)", "C": "O(1)", "D": "O(n^2)" },
+      "correct_answer": "C",
+      "difficulty": "easy"
+    },
+    {
+      "topic": "Hashing",
+      "question_text": "What is a 'collision' in the context of hashing?",
+      "options": {
+        "A": "When two keys map to the same index",
+        "B": "When the hash table is full",
+        "C": "When a key is deleted",
+        "D": "When the hash function fails to run"
+      },
+      "correct_answer": "A",
+      "difficulty": "medium"
+    },
+    {
+      "topic": "Hashing",
+      "question_text": "Which technique resolves collisions by storing multiple elements in a list at the same index?",
+      "options": {
+        "A": "Open addressing",
+        "B": "Chaining",
+        "C": "Linear probing only",
+        "D": "Rehashing only"
+      },
+      "correct_answer": "B",
+      "difficulty": "medium"
+    },
+    {
+      "topic": "Hashing",
+      "question_text": "What is the worst-case time complexity of a hash table lookup when many collisions occur?",
+      "options": {
+        "A": "O(1)",
+        "B": "O(log n)",
+        "C": "O(n)",
+        "D": "O(n log n)"
+      },
+      "correct_answer": "C",
+      "difficulty": "hard"
+    },
+    {
+      "topic": "Hashing",
+      "question_text": "What does the 'load factor' of a hash table represent?",
+      "options": {
+        "A": "Number of collisions only",
+        "B": "Ratio of number of stored elements to table size",
+        "C": "Time taken to hash a key",
+        "D": "Number of buckets that are empty"
+      },
+      "correct_answer": "B",
+      "difficulty": "hard"
+    }
+  ]
+}
