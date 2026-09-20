@@ -2,7 +2,7 @@ from sqlalchemy.orm import Session
 from collections import defaultdict
 from datetime import datetime
 
-from app.models import QuizQuestion, QuizAttempt, MasteryScore
+from app.models import QuizQuestion, QuizAttempt, MasteryScore, User
 
 DIFFICULTY_WEIGHTS = {"easy": 1, "medium": 2, "hard": 3}
 
@@ -16,41 +16,49 @@ def classify_mastery_level(score: float) -> str:
         return "Advanced"
 
 
-def score_quiz(db: Session, user_id: int, answers: list):
-    """
-    Takes raw answers, computes a weighted mastery score per topic,
-    logs the attempt, updates mastery_scores, and returns both the
-    topic-level mastery AND a per-question correct/incorrect breakdown.
-    Returns: ({ topic_id: mastery_score }, [ {question_id, question_text,
-              selected_option, correct_option, is_correct}, ... ])
-    """
+class InvalidUserError(Exception):
+    pass
+
+
+class InvalidSubmissionError(Exception):
+    pass
+
+
+def score_quiz(db: Session, user_id: int, answers: list, quiz_type: str = "diagnostic") -> dict:
+    # --- Edge case: user must exist ---
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        raise InvalidUserError(f"User with id {user_id} does not exist")
+
+    # --- Edge case: deduplicate answers by question_id (keep the last one submitted) ---
+    deduped_answers = {}
+    for ans in answers:
+        deduped_answers[ans.question_id] = ans
+    answers = list(deduped_answers.values())
+
     question_ids = [a.question_id for a in answers]
     questions = db.query(QuizQuestion).filter(QuizQuestion.id.in_(question_ids)).all()
     question_map = {q.id: q for q in questions}
 
     topic_correct_weight = defaultdict(float)
     topic_total_weight = defaultdict(float)
-    results = []
+    valid_answers_found = False
 
     for ans in answers:
         question = question_map.get(ans.question_id)
         if not question:
-            continue  # silently skip invalid question ids
+            continue  # skip invalid/unknown question_id
 
+        valid_answers_found = True
         weight = DIFFICULTY_WEIGHTS.get(question.difficulty, 1)
         topic_total_weight[question.topic_id] += weight
 
-        is_correct = ans.selected_option == question.correct_answer
-        if is_correct:
+        if ans.selected_option == question.correct_answer:
             topic_correct_weight[question.topic_id] += weight
 
-        results.append({
-            "question_id": question.id,
-            "question_text": question.question_text,
-            "selected_option": ans.selected_option,
-            "correct_option": question.correct_answer,
-            "is_correct": is_correct,
-        })
+    # --- Edge case: every submitted question_id was invalid ---
+    if not valid_answers_found:
+        raise InvalidSubmissionError("None of the submitted question_ids are valid")
 
     mastery_result = {}
 
@@ -62,7 +70,7 @@ def score_quiz(db: Session, user_id: int, answers: list):
         db.add(QuizAttempt(
             user_id=user_id,
             topic_id=topic_id,
-            quiz_type="diagnostic",
+            quiz_type=quiz_type,
             score=score,
         ))
 
@@ -86,4 +94,4 @@ def score_quiz(db: Session, user_id: int, answers: list):
             ))
 
     db.commit()
-    return mastery_result, results
+    return mastery_result

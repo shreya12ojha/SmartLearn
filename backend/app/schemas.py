@@ -1,11 +1,10 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 from typing import List, Dict
-
 
 class SignupRequest(BaseModel):
     email: EmailStr
-    password: str
-    name: str
+    password: str = Field(min_length=8, description="Minimum 8 characters")
+    name: str = Field(min_length=1)
 
 
 class LoginRequest(BaseModel):
@@ -36,6 +35,8 @@ class AnswerItem(BaseModel):
 class QuizSubmitRequest(BaseModel):
     user_id: int
     answers: List[AnswerItem]
+    quiz_type: str = Field(default="diagnostic", pattern="^(diagnostic|checkpoint)$")
+    
 
 
 class QuizSubmitResponse(BaseModel):

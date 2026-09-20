@@ -26,13 +26,22 @@ def get_quiz(topic: int = Query(..., description="Topic ID"), db: Session = Depe
     return QuizResponse(questions=question_list)
 
 
+from app.assessment_agent import score_quiz, InvalidUserError, InvalidSubmissionError
+
+
 @router.post("/submit", response_model=QuizSubmitResponse)
 def submit_quiz(payload: QuizSubmitRequest, db: Session = Depends(get_db)):
     if not payload.answers:
         raise HTTPException(status_code=400, detail="No answers submitted")
 
-    mastery, results = score_quiz(db, payload.user_id, payload.answers)
-    return QuizSubmitResponse(mastery=mastery, results=results)
+    try:
+        mastery = score_quiz(db, payload.user_id, payload.answers, payload.quiz_type)
+    except InvalidUserError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except InvalidSubmissionError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    return QuizSubmitResponse(mastery=mastery)
 
 from app.models import TopicPrerequisite
 from app.schemas import TopicGraphResponse, PrerequisiteOut
