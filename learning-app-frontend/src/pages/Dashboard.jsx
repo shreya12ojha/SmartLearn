@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { fetchRoadmap, fetchPacingEstimate } from '../api/mockApi'
+import { fetchRevisionPlan, fetchResources } from '../api/realApi'
 
 const subjectLabels = {
   dsa: 'Data Structures & Algorithms',
@@ -10,9 +11,8 @@ const subjectLabels = {
   dbms: 'DBMS',
 }
 
-// DSA uses the real backend, the other subjects use mock data
 const REAL_SUBJECTS = ['dsa']
-const REAL_PASS = 0.6   // same pass mark as RealDsaQuiz
+const REAL_PASS = 0.6
 const MOCK_PASS = 0.7
 const HOURS_PER_TOPIC = 2
 
@@ -23,7 +23,6 @@ function getTier(mastery, passMark = MOCK_PASS) {
   return 'low'
 }
 
-// Turns real topics + real scores into the same shape the mock topics have
 function buildRealTopics(realTopics, realMastery) {
   return realTopics.map((t) => ({
     id: t.id,
@@ -34,7 +33,6 @@ function buildRealTopics(realTopics, realMastery) {
   }))
 }
 
-// Simple pacing estimate for real topics
 function buildRealPacing(topics, hours) {
   const total = topics.length
   const completed = topics.filter((t) => t.mastery >= REAL_PASS).length
@@ -52,6 +50,9 @@ function Dashboard({ mastery, realMastery = {}, realTopics = [], profile, auth, 
   const [pacing, setPacing] = useState(null)
   const [loading, setLoading] = useState(true)
   const [menuOpen, setMenuOpen] = useState(false)
+  const [revisionPlan, setRevisionPlan] = useState([])
+  const [expandedTopicId, setExpandedTopicId] = useState(null)
+  const [resourceCache, setResourceCache] = useState({})
   const menuRef = useRef(null)
   const navigate = useNavigate()
 
@@ -61,7 +62,6 @@ function Dashboard({ mastery, realMastery = {}, realTopics = [], profile, auth, 
   const isReal = REAL_SUBJECTS.includes(activeSubject)
   const passMark = isReal ? REAL_PASS : MOCK_PASS
 
-  // DSA reads real data, other subjects read mock data
   useEffect(() => {
     if (isReal) {
       const list = buildRealTopics(realTopics, realMastery)
@@ -81,7 +81,6 @@ function Dashboard({ mastery, realMastery = {}, realTopics = [], profile, auth, 
     })
   }, [mastery, realMastery, realTopics, activeSubject, profile, isReal])
 
-  // Close the profile dropdown when clicking anywhere outside it
   useEffect(() => {
     function handleClickOutside(e) {
       if (menuRef.current && !menuRef.current.contains(e.target)) {
@@ -92,17 +91,42 @@ function Dashboard({ mastery, realMastery = {}, realTopics = [], profile, auth, 
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [])
 
+  useEffect(() => {
+    if (!isReal || !auth?.userId) {
+      setRevisionPlan([])
+      return
+    }
+    fetchRevisionPlan(auth.userId)
+      .then((data) => setRevisionPlan(data.revision_topics || []))
+      .catch(() => setRevisionPlan([]))
+  }, [isReal, auth, realMastery])
+
   const handleLogout = () => {
     setAuth(null)
     setProfile(null)
     navigate('/')
   }
 
+  const handleToggleResources = (topicId) => {
+    if (expandedTopicId === topicId) {
+      setExpandedTopicId(null)
+      return
+    }
+    setExpandedTopicId(topicId)
+    if (!resourceCache[topicId] && isReal && auth?.userId) {
+      fetchResources(topicId, auth.userId)
+        .then((data) => setResourceCache((prev) => ({ ...prev, [topicId]: data.recommended_resources || [] })))
+        .catch(() => setResourceCache((prev) => ({ ...prev, [topicId]: [] })))
+    }
+  }
+
   const initials = (auth?.name || auth?.email || 'S').charAt(0).toUpperCase()
 
   const currentTopic = topics.find((t) => t.mastery > 0 && t.mastery < passMark)
   const nextTopic = topics.find((t) => t.mastery === 0)
-  const revisionTopics = topics.filter((t) => t.mastery > 0 && t.mastery < 0.4)
+  const revisionTopics = isReal
+    ? revisionPlan.filter((r) => r.needs_revision)
+    : topics.filter((t) => t.mastery > 0 && t.mastery < 0.4)
 
   return (
     <div className="dashboard-layout">
@@ -176,17 +200,24 @@ function Dashboard({ mastery, realMastery = {}, realTopics = [], profile, auth, 
               <div className="dashboard-panel">
                 <h3>Needs Revision</h3>
                 {revisionTopics.length > 0 ? (
-                  revisionTopics.map((t) => (
-                    <div key={t.id} className="panel-row">
-                      <span>{t.name}</span>
-                      <button
-                        className="panel-link-btn"
-                        onClick={() => navigate('/quiz', { state: { startAt: { topicId: t.id, subject: activeSubject } } })}
-                      >
-                        Revise
-                      </button>
-                    </div>
-                  ))
+                  revisionTopics.map((t) => {
+                    const id = isReal ? t.topic_id : t.id
+                    const name = isReal ? t.topic_name : t.name
+                    return (
+                      <div key={id} className="panel-row">
+                        <span>
+                          {name}
+                          {isReal && <span className="decay-tag"> · {Math.round(t.decayed_mastery * 100)}%</span>}
+                        </span>
+                        <button
+                          className="panel-link-btn"
+                          onClick={() => navigate('/quiz', { state: { startAt: { topicId: id, subject: activeSubject } } })}
+                        >
+                          Revise
+                        </button>
+                      </div>
+                    )
+                  })
                 ) : (
                   <p className="panel-empty">Nothing flagged for revision yet.</p>
                 )}
@@ -208,12 +239,31 @@ function Dashboard({ mastery, realMastery = {}, realTopics = [], profile, auth, 
                 <h3>Resources</h3>
                 <div className="resource-list">
                   {topics.map((t) => (
-                    <div key={t.id} className="resource-row">
-                      <span className={`status-icon ${getTier(t.mastery, passMark)}`}>
-                        {t.mastery >= passMark ? '✓' : t.mastery > 0 ? '◐' : '○'}
-                      </span>
-                      <span className="resource-name">{t.name}</span>
-                      <span className="resource-link">{t.resource}</span>
+                    <div key={t.id}>
+                      <div className="resource-row resource-row-clickable" onClick={() => handleToggleResources(t.id)}>
+                        <span className={`status-icon ${getTier(t.mastery, passMark)}`}>
+                          {t.mastery >= passMark ? '✓' : t.mastery > 0 ? '◐' : '○'}
+                        </span>
+                        <span className="resource-name">{t.name}</span>
+                        <span className="resource-link">{expandedTopicId === t.id ? 'Hide' : 'View resources'}</span>
+                      </div>
+                      {expandedTopicId === t.id && (
+                        <div className="resource-expand">
+                          {!resourceCache[t.id] ? (
+                            <p className="panel-empty">Loading...</p>
+                          ) : resourceCache[t.id].length === 0 ? (
+                            <p className="panel-empty">No resources found for this topic yet.</p>
+                          ) : (
+                            resourceCache[t.id].map((r) => (
+                              <a key={r.id} href={r.url} target="_blank" rel="noreferrer" className="resource-card-link">
+                                <span className="resource-format-tag">{r.format}</span>
+                                <span className="resource-card-title">{r.title}</span>
+                                <span className="resource-card-meta">{r.platform} · ~{r.estimated_minutes} min</span>
+                              </a>
+                            ))
+                          )}
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>

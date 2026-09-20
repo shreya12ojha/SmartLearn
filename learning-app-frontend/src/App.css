@@ -1182,3 +1182,65 @@ h1 {
     grid-column: span 1;
   }
 }
+.resource-row-clickable {
+  cursor: pointer;
+}
+
+.resource-row-clickable:hover {
+  color: var(--accent-secondary);
+}
+
+.resource-expand {
+  padding: 10px 0 10px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.resource-list-quiz {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 18px 0;
+}
+
+.resource-card-link {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  text-decoration: none;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.resource-card-link:hover {
+  border-color: var(--accent-primary);
+  background: var(--surface-raised);
+}
+
+.resource-format-tag {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--accent-secondary);
+  font-weight: 600;
+}
+
+.resource-card-title {
+  font-size: 14px;
+  color: var(--text);
+  font-weight: 600;
+}
+
+.resource-card-meta {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.decay-tag {
+  font-size: 11px;
+  color: var(--fail);
+}

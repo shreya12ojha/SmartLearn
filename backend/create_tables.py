@@ -1,7 +1,6 @@
 from app.database import engine
 from app.models import Base
-from app.content_models import ContentResource  # registers the new table with Base
+import app.content_models  # ensures ContentResource is registered before create_all runs
 
 Base.metadata.create_all(bind=engine)
-
-print("Existing tables kept. New missing tables created successfully.")
+print("All tables created successfully in Supabase.")

@@ -1,10 +1,9 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { fetchTopicGraph, fetchQuizQuestions, submitQuizReal } from '../api/realApi'
+import { fetchTopicGraph, fetchQuizQuestions, submitQuizReal, fetchResources } from '../api/realApi'
 import { topoSortTopics } from '../utils/topoSort'
 
 const PASS_THRESHOLD = 0.6
-
 
 function RealDsaQuiz({ mastery = {}, setMastery, auth }) {
   const [orderedTopics, setOrderedTopics] = useState([])
@@ -18,6 +17,8 @@ function RealDsaQuiz({ mastery = {}, setMastery, auth }) {
   const [phase, setPhase] = useState('loading') // loading | testing | reviewing | fail | complete | error
   const [errorMsg, setErrorMsg] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [resources, setResources] = useState([])
+  const [resourcesLoading, setResourcesLoading] = useState(false)
   const navigate = useNavigate()
   const location = useLocation()
 
@@ -74,6 +75,18 @@ function RealDsaQuiz({ mastery = {}, setMastery, auth }) {
       })
   }, [topicIndex, orderedTopics])
 
+  const currentTopic = orderedTopics[topicIndex]
+
+  // Fetch real recommended resources when a topic is failed
+  useEffect(() => {
+    if (phase !== 'fail' || !currentTopic || !auth?.userId) return
+    setResourcesLoading(true)
+    fetchResources(currentTopic.id, auth.userId)
+      .then((data) => setResources(data.recommended_resources || []))
+      .catch(() => setResources([]))
+      .finally(() => setResourcesLoading(false))
+  }, [phase, currentTopic, auth])
+
   if (phase === 'loading') {
     return (
       <div className="quiz-container">
@@ -102,7 +115,6 @@ function RealDsaQuiz({ mastery = {}, setMastery, auth }) {
     )
   }
 
-  const currentTopic = orderedTopics[topicIndex]
   const getQuestionById = (id) => questions.find((q) => q.id === id)
   const currentQuestion = activeQuestions[currentIndex]
   const allAnswered = activeQuestions.every((q) => answers[q.id] !== undefined)
@@ -142,7 +154,7 @@ function RealDsaQuiz({ mastery = {}, setMastery, auth }) {
   const handleContinueFromReview = () => {
     if (lastScore >= PASS_THRESHOLD) {
       if (isRetestMode) {
-        navigate('/roadmap')
+        navigate('/dashboard')
         return
       }
       if (topicIndex < orderedTopics.length - 1) {
@@ -207,11 +219,25 @@ function RealDsaQuiz({ mastery = {}, setMastery, auth }) {
       <div className="quiz-container">
         <h1>Let's revisit {currentTopic.name}</h1>
         <p className="quiz-meta">
-          You'll be retested on just the {activeQuestions.length} question{activeQuestions.length !== 1 ? 's' : ''} you missed — review the concept, then retake.
+          You'll be retested on just the {activeQuestions.length} question{activeQuestions.length !== 1 ? 's' : ''} you missed — review these first, then retake.
         </p>
-        <div className="resource-card">
-          📚 Resource recommendations for {currentTopic.name} are coming soon — review your notes on this topic and retry.
-        </div>
+
+        {resourcesLoading ? (
+          <p className="quiz-meta">Loading recommended resources...</p>
+        ) : resources.length > 0 ? (
+          <div className="resource-list-quiz">
+            {resources.map((r) => (
+              <a key={r.id} href={r.url} target="_blank" rel="noreferrer" className="resource-card-link">
+                <span className="resource-format-tag">{r.format}</span>
+                <span className="resource-card-title">{r.title}</span>
+                <span className="resource-card-meta">{r.platform} · ~{r.estimated_minutes} min</span>
+              </a>
+            ))}
+          </div>
+        ) : (
+          <div className="resource-card">📚 No specific resources found yet — review your notes on this topic and retry.</div>
+        )}
+
         <button className="quiz-next-btn enabled" onClick={handleRetry}>
           I've reviewed it — Retry Quiz
         </button>
