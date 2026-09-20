@@ -27,8 +27,8 @@ function Login({ setAuth }) {
     setLoading(true)
     try {
       const result = await login({ email, password })
-      setAuth({ token: result.token, userId: result.user_id })
-      navigate('/roadmap')
+      setAuth({ token: result.token, userId: result.user_id, email })
+      navigate('/dashboard')
     } catch (err) {
       setError('Invalid email or password.')
     } finally {
@@ -37,22 +37,32 @@ function Login({ setAuth }) {
   }
 
   return (
-    <div className="login-container">
-      <h1>Login</h1>
-      <form onSubmit={handleSubmit}>
-        <div>
-          <label>Email</label>
-          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
-        </div>
-        <div>
-          <label>Password</label>
-          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
-        </div>
-        {error && <p className="form-error">{error}</p>}
-        <button type="submit" disabled={loading}>
-          {loading ? 'Logging in...' : 'Log In'}
-        </button>
-      </form>
+    <div className="auth-page">
+      <div className="auth-card">
+        <h1 className="auth-title">Welcome back</h1>
+        <p className="auth-subtitle">Log in to pick up where you left off.</p>
+
+        <form onSubmit={handleSubmit} className="auth-form">
+          <div className="auth-field">
+            <label>Email</label>
+            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" />
+          </div>
+          <div className="auth-field">
+            <label>Password</label>
+            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" />
+          </div>
+
+          {error && <p className="form-error">{error}</p>}
+
+          <button type="submit" className="auth-submit-btn" disabled={loading}>
+            {loading ? 'Logging in...' : 'Log In'}
+          </button>
+        </form>
+
+        <p className="auth-switch">
+          New here? <span onClick={() => navigate('/signup')}>Create an account</span>
+        </p>
+      </div>
     </div>
   )
 }

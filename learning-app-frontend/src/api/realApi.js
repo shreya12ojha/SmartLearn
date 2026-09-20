@@ -49,3 +49,8 @@ export async function submitQuizReal(userId, answers) {
   }
   return res.json() // { mastery: { "topicId": score } }
 }
+export async function fetchMastery(userId) {
+  const res = await fetch(`${BASE_URL}/api/assessment/mastery/${userId}`)
+  if (!res.ok) throw new Error('Failed to fetch mastery')
+  return res.json() // expected: array or object of { topic_id, topic_name, score, level, last_updated }
+}

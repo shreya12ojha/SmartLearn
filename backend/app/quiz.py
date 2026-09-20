@@ -35,13 +35,13 @@ def submit_quiz(payload: QuizSubmitRequest, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail="No answers submitted")
 
     try:
-        mastery = score_quiz(db, payload.user_id, payload.answers, payload.quiz_type)
+        mastery, results = score_quiz(db, payload.user_id, payload.answers, payload.quiz_type)
     except InvalidUserError as e:
         raise HTTPException(status_code=404, detail=str(e))
     except InvalidSubmissionError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-    return QuizSubmitResponse(mastery=mastery)
+    return QuizSubmitResponse(mastery=mastery, results=results)
 
 from app.models import TopicPrerequisite
 from app.schemas import TopicGraphResponse, PrerequisiteOut
