@@ -12,10 +12,16 @@ topics_data = [
 
 topic_objs = {}
 for t in topics_data:
-    topic = Topic(**t)
-    db.add(topic)
-    db.flush()  # so topic.id is available before commit
-    topic_objs[t["name"]] = topic
+    existing = db.query(Topic).filter(Topic.name == t["name"]).first()
+    if existing:
+        topic_objs[t["name"]] = existing
+    else:
+        topic = Topic(**t)
+        db.add(topic)
+        db.flush()  # so topic.id is available before commit
+        topic_objs[t["name"]] = topic
+
+db.commit()
 
 # Seed a few sample questions
 questions_data = [
@@ -35,16 +41,32 @@ questions_data = [
     },
 ]
 
+added = 0
+skipped = 0
 for q in questions_data:
+    topic_id = topic_objs[q["topic"]].id
+    existing = (
+        db.query(QuizQuestion)
+        .filter(
+            QuizQuestion.topic_id == topic_id,
+            QuizQuestion.question_text == q["question_text"],
+        )
+        .first()
+    )
+    if existing:
+        skipped += 1
+        continue
+
     question = QuizQuestion(
-        topic_id=topic_objs[q["topic"]].id,
+        topic_id=topic_id,
         question_text=q["question_text"],
         options=q["options"],
         correct_answer=q["correct_answer"],
         difficulty=q["difficulty"],
     )
     db.add(question)
+    added += 1
 
 db.commit()
 db.close()
-print("Seed data inserted successfully.")
+print(f"Seed data inserted: {added} question(s) added, {skipped} already existed.")

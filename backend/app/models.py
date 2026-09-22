@@ -77,3 +77,44 @@ class TopicPrerequisite(Base):
     id = Column(Integer, primary_key=True, index=True)
     topic_id = Column(Integer, ForeignKey("topics.id"), nullable=False)
     prerequisite_topic_id = Column(Integer, ForeignKey("topics.id"), nullable=False)
+
+class LearningResource(Base):
+    __tablename__ = "learning_resources"
+
+    id = Column(Integer, primary_key=True, index=True)
+    topic_id = Column(Integer, ForeignKey("topics.id"), nullable=False, index=True)
+    title = Column(String, nullable=False)
+    url = Column(String, nullable=False)
+    format = Column(String, nullable=False, index=True)
+    estimated_time = Column(Integer, default=30)
+    difficulty = Column(String, default="medium")
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    topic = relationship("Topic", backref="resources")
+
+
+class BanditInteraction(Base):
+    __tablename__ = "bandit_interactions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False, index=True)
+    topic_id = Column(Integer, ForeignKey("topics.id"), nullable=False, index=True)
+    selected_arm = Column(String, nullable=False)
+    context = Column(JSON, nullable=False)
+    pre_mastery = Column(Float, nullable=False)
+    post_mastery = Column(Float, nullable=True)
+    reward = Column(Float, nullable=True)
+    timestamp = Column(DateTime, default=datetime.utcnow)
+
+    user = relationship("User")
+    topic = relationship("Topic")
+
+
+class BanditModelState(Base):
+    __tablename__ = "bandit_model_state"
+
+    id = Column(Integer, primary_key=True, index=True)
+    arm_name = Column(String, unique=True, nullable=False, index=True)
+    A_matrix = Column(JSON, nullable=False)
+    b_vector = Column(JSON, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

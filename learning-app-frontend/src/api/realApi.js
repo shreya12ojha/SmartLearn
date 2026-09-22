@@ -32,8 +32,8 @@ export async function fetchTopicGraph() {
   return res.json() // { topics: [...], prerequisites: [...] }
 }
 
-export async function fetchQuizQuestions(topicId) {
-  const res = await fetch(`${BASE_URL}/api/quiz?topic=${topicId}`)
+export async function fetchQuizQuestions(topicId, userId) {
+  const res = await fetch(`${BASE_URL}/api/quiz?topic=${topicId}&user_id=${userId}`)
   if (!res.ok) throw new Error('Failed to fetch quiz questions')
   return res.json() // { questions: [{ id, question_text, options }] }
 }
@@ -72,4 +72,44 @@ export async function fetchResources(topicId, userId) {
   const res = await fetch(`${BASE_URL}/api/resources?topic_id=${topicId}&user_id=${userId}`)
   if (!res.ok) throw new Error('Failed to fetch resources')
   return res.json() // { topic_id, topic_name, recommended_resources: [...] }
+}
+
+export async function fetchPathPlanningRoadmap(userId) {
+  const res = await fetch(`${BASE_URL}/api/path-planning/roadmap/${userId}`)
+  if (!res.ok) throw new Error('Failed to fetch roadmap')
+  return res.json()
+  // { user_id, weekly_budget, allocated_minutes, remaining_budget,
+  //   next_topic, roadmap: [...], summary: {...} }
+}
+
+export async function fetchNextTopic(userId) {
+  const res = await fetch(`${BASE_URL}/api/path-planning/next-topic/${userId}`)
+  if (!res.ok) throw new Error('Failed to fetch next topic')
+  return res.json() // { user_id, next_topic, reason }
+}
+
+export async function fetchResourceRecommendation(userId, topicId) {
+  const res = await fetch(
+    `${BASE_URL}/api/recommendations/resource?user_id=${userId}&topic_id=${topicId}`
+  )
+  if (!res.ok) throw new Error('Failed to fetch resource recommendation')
+  return res.json()
+  // { topic_id, topic_name, selected_arm, resource, ucb_score,
+  //   exploration_bonus, context_features, interaction_id }
+}
+
+export async function submitBanditFeedback({ userId, topicId, selectedArm, preMastery, postMastery }) {
+  const res = await fetch(`${BASE_URL}/api/recommendations/feedback`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      user_id: userId,
+      topic_id: topicId,
+      selected_arm: selectedArm,
+      pre_mastery: preMastery,
+      post_mastery: postMastery,
+    }),
+  })
+  if (!res.ok) throw new Error('Failed to submit bandit feedback')
+  return res.json()
 }

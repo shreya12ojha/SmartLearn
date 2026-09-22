@@ -5,6 +5,7 @@ from app.quiz import router as quiz_router
 from app.assessment_routes import router as assessment_router
 from app.content_routes import router as content_router
 from app.retention_routes import router as retention_router
+from app.path_planning_routes import router as path_planning_router
 
 app = FastAPI(title="Adaptive Learning Platform API")
 
@@ -21,6 +22,7 @@ app.include_router(quiz_router)
 app.include_router(assessment_router)
 app.include_router(content_router)
 app.include_router(retention_router)
+app.include_router(path_planning_router)
 
 
 @app.get("/")

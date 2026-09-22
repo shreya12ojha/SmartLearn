@@ -115,14 +115,15 @@ function AppRoutes() {
         <Route
           path="/roadmap"
           element={
-        <Roadmap
-          mastery={mastery}
-          profile={profile}
-          realTopics={realTopics}
-          realMastery={realMastery}
-    />
-  }
-/>
+            <Roadmap
+              mastery={mastery}
+              profile={profile}
+              realTopics={realTopics}
+              realMastery={realMastery}
+              auth={auth}
+            />
+          }
+        />
         <Route
           path="/dashboard"
           element={

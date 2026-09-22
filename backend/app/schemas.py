@@ -1,5 +1,5 @@
 from pydantic import BaseModel, EmailStr, Field
-from typing import List, Dict
+from typing import List, Dict, Optional
 
 class SignupRequest(BaseModel):
     email: EmailStr
@@ -75,3 +75,80 @@ class MasteryDetail(BaseModel):
 class MasteryOverviewResponse(BaseModel):
     user_id: int
     mastery: List[MasteryDetail]
+
+class RoadmapTopicOut(BaseModel):
+    topic_id: int
+    topic_name: str
+    domain: str
+    difficulty: str
+    order: int
+    status: str
+    mastery_score: float
+    mastery_level: str
+    estimated_duration: int
+    is_unlocked: bool
+    reason: str
+    blocking_prerequisites: List[str] = []
+    satisfied_prerequisites: List[str] = []
+
+
+class RoadmapSummaryOut(BaseModel):
+    total_topics: int
+    scheduled_count: int
+    mastered_count: int
+    blocked_count: int
+    deferred_count: int
+
+
+class RoadmapResponse(BaseModel):
+    user_id: int
+    weekly_budget: int
+    allocated_minutes: int
+    remaining_budget: int
+    next_topic: Optional[RoadmapTopicOut] = None
+    roadmap: List[RoadmapTopicOut]
+    summary: RoadmapSummaryOut
+
+
+class NextTopicResponse(BaseModel):
+    user_id: int
+    next_topic: Optional[RoadmapTopicOut] = None
+    reason: str
+
+
+class LearningResourceOut(BaseModel):
+    id: int
+    topic_id: int
+    title: str
+    url: str
+    format: str
+    estimated_time: int
+    difficulty: str
+
+
+class ResourceRecommendationResponse(BaseModel):
+    topic_id: int
+    topic_name: str
+    selected_arm: str
+    resource: Optional[LearningResourceOut] = None
+    ucb_score: float
+    exploration_bonus: float
+    context_features: Dict[str, float]
+    interaction_id: Optional[int] = None
+
+
+class BanditFeedbackRequest(BaseModel):
+    user_id: int
+    topic_id: int
+    selected_arm: str
+    pre_mastery: float
+    post_mastery: float
+
+
+class BanditFeedbackResponse(BaseModel):
+    status: str
+    reward: float
+    pre_mastery: float
+    post_mastery: float
+    arm: str
+    message: str

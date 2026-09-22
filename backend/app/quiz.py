@@ -1,10 +1,19 @@
+import random
+
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.models import QuizQuestion, Topic
-from app.schemas import QuizResponse, QuestionOut, QuizSubmitRequest, QuizSubmitResponse
-from app.assessment_agent import score_quiz
+from app.models import QuizQuestion, Topic, TopicPrerequisite
+from app.schemas import (
+    QuizResponse,
+    QuestionOut,
+    QuizSubmitRequest,
+    QuizSubmitResponse,
+    TopicGraphResponse,
+    PrerequisiteOut,
+)
+from app.assessment_agent import score_quiz, InvalidUserError, InvalidSubmissionError
 
 router = APIRouter(prefix="/api/quiz", tags=["Quiz"])
 
@@ -19,14 +28,24 @@ def get_quiz(topic: int = Query(..., description="Topic ID"), db: Session = Depe
     if not questions:
         raise HTTPException(status_code=404, detail="No questions found for this topic")
 
+    # Safety net: if duplicate rows exist in the DB (e.g. from a seed script
+    # being re-run), never surface the same question twice in one quiz.
+    seen_text = set()
+    unique_questions = []
+    for q in questions:
+        if q.question_text in seen_text:
+            continue
+        seen_text.add(q.question_text)
+        unique_questions.append(q)
+
+    # Shuffle so repeated attempts don't always show questions in the same order.
+    random.shuffle(unique_questions)
+
     question_list = [
         QuestionOut(id=q.id, question_text=q.question_text, options=q.options)
-        for q in questions
+        for q in unique_questions
     ]
     return QuizResponse(questions=question_list)
-
-
-from app.assessment_agent import score_quiz, InvalidUserError, InvalidSubmissionError
 
 
 @router.post("/submit", response_model=QuizSubmitResponse)
@@ -42,9 +61,6 @@ def submit_quiz(payload: QuizSubmitRequest, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail=str(e))
 
     return QuizSubmitResponse(mastery=mastery, results=results)
-
-from app.models import TopicPrerequisite
-from app.schemas import TopicGraphResponse, PrerequisiteOut
 
 
 @router.get("/topics/graph", response_model=TopicGraphResponse)

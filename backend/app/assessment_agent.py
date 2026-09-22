@@ -91,14 +91,14 @@ def score_quiz(db: Session, user_id: int, answers: list, quiz_type: str = "diagn
 
         level = classify_mastery_level(score)
 
-    if mastery_row:
-        mastery_row.mastery_score = score
-        mastery_row.mastery_level = level
-    # A checkpoint means the student has reviewed the topic.
-    if quiz_type == "checkpoint":
-        mastery_row.last_updated = datetime.utcnow()
-    else:
-        db.add(MasteryScore(
+        if mastery_row:
+            mastery_row.mastery_score = score
+            mastery_row.mastery_level = level
+            # A checkpoint means the student has reviewed the topic.
+            if quiz_type == "checkpoint":
+                mastery_row.last_updated = datetime.utcnow()
+        else:
+            db.add(MasteryScore(
                 user_id=user_id,
                 topic_id=topic_id,
                 mastery_score=score,
