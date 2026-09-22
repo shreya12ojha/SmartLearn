@@ -24,7 +24,7 @@ class InvalidSubmissionError(Exception):
     pass
 
 
-def score_quiz(db: Session, user_id: int, answers: list, quiz_type: str = "diagnostic"):
+def score_quiz(db: Session, user_id: int, answers: list, quiz_type: str = "diagnostic") -> dict:
     # --- Edge case: user must exist ---
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
@@ -43,7 +43,6 @@ def score_quiz(db: Session, user_id: int, answers: list, quiz_type: str = "diagn
     topic_correct_weight = defaultdict(float)
     topic_total_weight = defaultdict(float)
     valid_answers_found = False
-    results = []
 
     for ans in answers:
         question = question_map.get(ans.question_id)
@@ -54,17 +53,8 @@ def score_quiz(db: Session, user_id: int, answers: list, quiz_type: str = "diagn
         weight = DIFFICULTY_WEIGHTS.get(question.difficulty, 1)
         topic_total_weight[question.topic_id] += weight
 
-        is_correct = ans.selected_option == question.correct_answer
-        if is_correct:
+        if ans.selected_option == question.correct_answer:
             topic_correct_weight[question.topic_id] += weight
-
-        results.append({
-            "question_id": question.id,
-            "question_text": question.question_text,
-            "selected_option": ans.selected_option,
-            "correct_option": question.correct_answer,
-            "is_correct": is_correct,
-        })
 
     # --- Edge case: every submitted question_id was invalid ---
     if not valid_answers_found:
@@ -91,14 +81,12 @@ def score_quiz(db: Session, user_id: int, answers: list, quiz_type: str = "diagn
 
         level = classify_mastery_level(score)
 
-    if mastery_row:
-        mastery_row.mastery_score = score
-        mastery_row.mastery_level = level
-    # A checkpoint means the student has reviewed the topic.
-    if quiz_type == "checkpoint":
-        mastery_row.last_updated = datetime.utcnow()
-    else:
-        db.add(MasteryScore(
+        if mastery_row:
+            mastery_row.mastery_score = score
+            mastery_row.mastery_level = level
+            mastery_row.last_updated = datetime.utcnow()
+        else:
+            db.add(MasteryScore(
                 user_id=user_id,
                 topic_id=topic_id,
                 mastery_score=score,
@@ -106,4 +94,4 @@ def score_quiz(db: Session, user_id: int, answers: list, quiz_type: str = "diagn
             ))
 
     db.commit()
-    return mastery_result, results
+    return mastery_result

@@ -4,3 +4,10 @@ backend/smartlearn.db
 __pycache__/
 *.pyc
 .DS_Store
+
+# Virtual environments
+.venv/
+.venv_win/
+
+# Python build metadata
+*.egg-info/

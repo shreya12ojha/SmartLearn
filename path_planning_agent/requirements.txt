@@ -1,0 +1,3 @@
+# Zero external runtime dependencies required for core planning.
+# Optional development dependencies:
+pytest>=7.0.0

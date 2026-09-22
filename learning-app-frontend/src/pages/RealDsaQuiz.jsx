@@ -1,11 +1,48 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { fetchTopicGraph, fetchQuizQuestions, submitQuizReal, fetchResources } from '../api/realApi'
-import { topoSortTopics } from '../utils/topoSort'
+import {
+  fetchTopicGraph,
+  fetchQuizQuestions,
+  submitQuizReal,
+  submitBanditFeedback,
+  fetchResourceRecommendation,
+  getStoredAuth,
+} from '../api/realApi'
 
 const PASS_THRESHOLD = 0.6
 
-function RealDsaQuiz({ mastery = {}, setMastery, auth }) {
+function topoSortTopics(topics, prerequisites) {
+  const ids = topics.map((t) => t.id)
+  const idSet = new Set(ids)
+  const inDegree = {}
+  const adj = {}
+  ids.forEach((id) => {
+    inDegree[id] = 0
+    adj[id] = []
+  })
+  prerequisites.forEach((p) => {
+    if (idSet.has(p.topic_id) && idSet.has(p.prerequisite_topic_id)) {
+      adj[p.prerequisite_topic_id].push(p.topic_id)
+      inDegree[p.topic_id] += 1
+    }
+  })
+  const queue = ids.filter((id) => inDegree[id] === 0)
+  const order = []
+  while (queue.length) {
+    const id = queue.shift()
+    order.push(id)
+    adj[id].forEach((next) => {
+      inDegree[next] -= 1
+      if (inDegree[next] === 0) queue.push(next)
+    })
+  }
+  ids.forEach((id) => {
+    if (!order.includes(id)) order.push(id)
+  })
+  return order.map((id) => topics.find((t) => t.id === id))
+}
+
+function RealDsaQuiz({ mastery, setMastery, auth }) {
   const [orderedTopics, setOrderedTopics] = useState([])
   const [topicIndex, setTopicIndex] = useState(0)
   const [questions, setQuestions] = useState([])       // full question set for this topic
@@ -17,8 +54,6 @@ function RealDsaQuiz({ mastery = {}, setMastery, auth }) {
   const [phase, setPhase] = useState('loading') // loading | testing | reviewing | fail | complete | error
   const [errorMsg, setErrorMsg] = useState('')
   const [submitting, setSubmitting] = useState(false)
-  const [resources, setResources] = useState([])
-  const [resourcesLoading, setResourcesLoading] = useState(false)
   const navigate = useNavigate()
   const location = useLocation()
 
@@ -26,7 +61,9 @@ function RealDsaQuiz({ mastery = {}, setMastery, auth }) {
   const isRetestMode = !!startAt?.topicId
 
   useEffect(() => {
-    if (!auth?.userId) {
+    const currentAuth = auth || getStoredAuth()
+    const effectiveUserId = currentAuth?.userId || currentAuth?.user_id
+    if (!effectiveUserId) {
       setPhase('error')
       setErrorMsg('You need to be logged in to take this quiz.')
       return
@@ -75,18 +112,6 @@ function RealDsaQuiz({ mastery = {}, setMastery, auth }) {
       })
   }, [topicIndex, orderedTopics])
 
-  const currentTopic = orderedTopics[topicIndex]
-
-  // Fetch real recommended resources when a topic is failed
-  useEffect(() => {
-    if (phase !== 'fail' || !currentTopic || !auth?.userId) return
-    setResourcesLoading(true)
-    fetchResources(currentTopic.id, auth.userId)
-      .then((data) => setResources(data.recommended_resources || []))
-      .catch(() => setResources([]))
-      .finally(() => setResourcesLoading(false))
-  }, [phase, currentTopic, auth])
-
   if (phase === 'loading') {
     return (
       <div className="quiz-container">
@@ -115,6 +140,7 @@ function RealDsaQuiz({ mastery = {}, setMastery, auth }) {
     )
   }
 
+  const currentTopic = orderedTopics[topicIndex]
   const getQuestionById = (id) => questions.find((q) => q.id === id)
   const currentQuestion = activeQuestions[currentIndex]
   const allAnswered = activeQuestions.every((q) => answers[q.id] !== undefined)
@@ -131,17 +157,48 @@ function RealDsaQuiz({ mastery = {}, setMastery, auth }) {
   const submitAndEvaluate = async () => {
     setSubmitting(true)
     try {
+      const currentAuth = auth || getStoredAuth()
+      const effectiveUserId = currentAuth?.userId || currentAuth?.user_id
+      const effectiveToken = currentAuth?.token
+
+      const preMastery = Number(mastery[currentTopic.id] || 0)
       const answersArray = activeQuestions.map((q) => ({
         question_id: q.id,
         selected_option: answers[q.id],
       }))
-      const quizType = isRetestMode ? 'checkpoint' : 'diagnostic'
-      const response = await submitQuizReal(auth.userId, answersArray, quizType)
+      const response = await submitQuizReal(effectiveUserId, answersArray, effectiveToken)
       const score = response.mastery[String(currentTopic.id)] ?? response.mastery[currentTopic.id] ?? 0
 
       setMastery({ ...mastery, [currentTopic.id]: Math.max(mastery[currentTopic.id] || 0, score) })
       setResults(response.results || [])
       setLastScore(score)
+
+      // Determine the real recommended arm (from Roadmap or CMAB endpoint), never hardcoded
+      let armToReport = startAt?.recommendedArm
+      if (!armToReport) {
+        try {
+          const rec = await fetchResourceRecommendation(effectiveUserId, currentTopic.id, effectiveToken)
+          armToReport = rec?.selected_arm
+        } catch (e) {
+          console.warn('Could not retrieve CMAB arm recommendation for feedback:', e)
+        }
+      }
+
+      // Send feedback to LinUCB bandit
+      if (armToReport) {
+        try {
+          await submitBanditFeedback({
+            userId: effectiveUserId,
+            topicId: currentTopic.id,
+            selectedArm: armToReport,
+            preMastery,
+            postMastery: score,
+          }, effectiveToken)
+        } catch (banditErr) {
+          console.warn('LinUCB feedback submission warning:', banditErr)
+        }
+      }
+
       setPhase('reviewing')
     } catch (err) {
       setPhase('error')
@@ -154,7 +211,7 @@ function RealDsaQuiz({ mastery = {}, setMastery, auth }) {
   const handleContinueFromReview = () => {
     if (lastScore >= PASS_THRESHOLD) {
       if (isRetestMode) {
-        navigate('/dashboard')
+        navigate('/roadmap')
         return
       }
       if (topicIndex < orderedTopics.length - 1) {
@@ -219,25 +276,11 @@ function RealDsaQuiz({ mastery = {}, setMastery, auth }) {
       <div className="quiz-container">
         <h1>Let's revisit {currentTopic.name}</h1>
         <p className="quiz-meta">
-          You'll be retested on just the {activeQuestions.length} question{activeQuestions.length !== 1 ? 's' : ''} you missed — review these first, then retake.
+          You'll be retested on just the {activeQuestions.length} question{activeQuestions.length !== 1 ? 's' : ''} you missed — review the concept, then retake.
         </p>
-
-        {resourcesLoading ? (
-          <p className="quiz-meta">Loading recommended resources...</p>
-        ) : resources.length > 0 ? (
-          <div className="resource-list-quiz">
-            {resources.map((r) => (
-              <a key={r.id} href={r.url} target="_blank" rel="noreferrer" className="resource-card-link">
-                <span className="resource-format-tag">{r.format}</span>
-                <span className="resource-card-title">{r.title}</span>
-                <span className="resource-card-meta">{r.platform} · ~{r.estimated_minutes} min</span>
-              </a>
-            ))}
-          </div>
-        ) : (
-          <div className="resource-card">📚 No specific resources found yet — review your notes on this topic and retry.</div>
-        )}
-
+        <div className="resource-card">
+          📚 Resource recommendations for {currentTopic.name} are coming soon — review your notes on this topic and retry.
+        </div>
         <button className="quiz-next-btn enabled" onClick={handleRetry}>
           I've reviewed it — Retry Quiz
         </button>

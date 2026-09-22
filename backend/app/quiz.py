@@ -3,9 +3,8 @@ from sqlalchemy.orm import Session
 
 from app.database import get_db
 from app.models import QuizQuestion, Topic
-from app.schemas import QuizResponse, QuestionOut, QuizSubmitRequest, QuizSubmitResponse
-from app.assessment_agent import score_quiz
-
+from app.schemas import QuizResponse, QuestionOut, QuizSubmitRequest, QuizSubmitResponse, QuestionResultOut
+from app.assessment_agent import score_quiz, InvalidUserError, InvalidSubmissionError
 router = APIRouter(prefix="/api/quiz", tags=["Quiz"])
 
 
@@ -26,22 +25,38 @@ def get_quiz(topic: int = Query(..., description="Topic ID"), db: Session = Depe
     return QuizResponse(questions=question_list)
 
 
-from app.assessment_agent import score_quiz, InvalidUserError, InvalidSubmissionError
-
-
 @router.post("/submit", response_model=QuizSubmitResponse)
 def submit_quiz(payload: QuizSubmitRequest, db: Session = Depends(get_db)):
     if not payload.answers:
         raise HTTPException(status_code=400, detail="No answers submitted")
 
     try:
-        mastery, results = score_quiz(db, payload.user_id, payload.answers, payload.quiz_type)
+        mastery = score_quiz(db, payload.user_id, payload.answers, payload.quiz_type)
     except InvalidUserError as e:
         raise HTTPException(status_code=404, detail=str(e))
     except InvalidSubmissionError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-    return QuizSubmitResponse(mastery=mastery, results=results)
+    # Populate question-level results for frontend review
+    question_ids = [a.question_id for a in payload.answers]
+    questions = db.query(QuizQuestion).filter(QuizQuestion.id.in_(question_ids)).all()
+    q_map = {q.id: q for q in questions}
+
+    question_results = []
+    for a in payload.answers:
+        q = q_map.get(a.question_id)
+        if q:
+            question_results.append(
+                QuestionResultOut(
+                    question_id=q.id,
+                    question_text=q.question_text,
+                    selected_option=a.selected_option,
+                    correct_option=q.correct_answer,
+                    is_correct=(a.selected_option == q.correct_answer),
+                )
+            )
+
+    return QuizSubmitResponse(mastery=mastery, results=question_results)
 
 from app.models import TopicPrerequisite
 from app.schemas import TopicGraphResponse, PrerequisiteOut
